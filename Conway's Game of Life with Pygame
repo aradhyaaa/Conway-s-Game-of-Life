@@ -1,0 +1,60 @@
+import pygame
+import numpy as np
+
+# Constants
+WIDTH, HEIGHT = 800, 600
+GRID_SIZE = 10
+GRID_WIDTH = WIDTH // GRID_SIZE
+GRID_HEIGHT = HEIGHT // GRID_SIZE
+ALIVE_COLOR = (255, 255, 255)
+DEAD_COLOR = (0, 0, 0)
+
+# Initialize Pygame
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Conway's Game of Life")
+
+# Create a random initial grid
+grid = np.random.choice([0, 1], size=(GRID_WIDTH, GRID_HEIGHT), p=[0.2, 0.8])
+
+# Function to update the grid
+def update_grid():
+    next_grid = grid.copy()
+    for x in range(GRID_WIDTH):
+        for y in range(GRID_HEIGHT):
+            total = np.sum(grid[max(0, x-1):min(GRID_WIDTH, x+2), max(0, y-1):min(GRID_HEIGHT, y+2)]) - grid[x, y]
+            if grid[x, y] == 1:
+                if total < 2 or total > 3:
+                    next_grid[x, y] = 0
+            else:
+                if total == 3:
+                    next_grid[x, y] = 1
+    return next_grid
+
+# Start the simulation
+running = True
+paused = False
+clock = pygame.time.Clock()
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                paused = not paused
+
+    if not paused:
+        grid = update_grid()
+
+    screen.fill(DEAD_COLOR)
+
+    for x in range(GRID_WIDTH):
+        for y in range(GRID_HEIGHT):
+            if grid[x, y] == 1:
+                pygame.draw.rect(screen, ALIVE_COLOR, (x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE))
+
+    pygame.display.flip()
+    clock.tick(10)
+
+pygame.quit()
